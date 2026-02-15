@@ -1,8 +1,11 @@
-import { Alert, Box, Button, CircularProgress, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, MenuItem, Pagination, Paper, Stack, TextField, Typography } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchPlanificador } from '../api/endpoints';
 import { planificadorMock } from '../api/mockData';
+import MobileRecordCard from '../components/MobileRecordCard';
 import type { PlanItem } from '../api/types';
 import DateRangeFilter from '../components/DateRangeFilter';
 import { defaultDateRange, toApiDate } from '../utils/date';
@@ -20,12 +23,16 @@ const planColumns: GridColDef<PlanItem>[] = [
 const categories = Array.from(new Set(planificadorMock.map((row) => row.categoria)));
 
 const Planificador = (): JSX.Element => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const mobilePageSize = 6;
   const initialRange = defaultDateRange();
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
   const [category, setCategory] = useState('');
   const [product, setProduct] = useState('');
   const [search, setSearch] = useState('');
+  const [mobilePage, setMobilePage] = useState(1);
   const [rows, setRows] = useState<PlanItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -78,8 +85,23 @@ const Planificador = (): JSX.Element => {
     );
   }, [rows, search]);
 
+  const mobilePageCount = Math.max(1, Math.ceil(filteredRows.length / mobilePageSize));
+
+  useEffect(() => {
+    setMobilePage((prev) => Math.min(prev, mobilePageCount));
+  }, [mobilePageCount]);
+
+  useEffect(() => {
+    setMobilePage(1);
+  }, [search, category, product, startDate, endDate]);
+
+  const pagedRows = useMemo(() => {
+    const start = (mobilePage - 1) * mobilePageSize;
+    return filteredRows.slice(start, start + mobilePageSize);
+  }, [filteredRows, mobilePage]);
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} sx={{ maxWidth: { xs: 440, md: 'none' }, mx: { xs: 'auto', md: 0 } }}>
       <Typography variant="h5" fontWeight={700}>
         Planificador de Patching
       </Typography>
@@ -164,21 +186,52 @@ const Planificador = (): JSX.Element => {
             fullWidth
             sx={{ mb: 1.5 }}
           />
-          <Box sx={{ width: '100%', overflowX: 'auto' }}>
-            <DataGrid
-              rows={filteredRows}
-              columns={planColumns}
-              autoHeight
-              disableRowSelectionOnClick
-              pageSizeOptions={[10]}
-              initialState={{
-                pagination: {
-                  paginationModel: { pageSize: 10, page: 0 },
-                },
-              }}
-              sx={{ minWidth: 860 }}
-            />
-          </Box>
+          {isMobile ? (
+            <Stack spacing={1.2}>
+              {pagedRows.map((row, index) => (
+                <MobileRecordCard
+                  key={row.id}
+                  title={`N° ${(mobilePage - 1) * mobilePageSize + index + 1}`}
+                  rows={[
+                    { label: 'Fecha', value: row.fecha },
+                    { label: 'Articulo', value: row.item },
+                    { label: 'Producto', value: row.producto },
+                    { label: 'Estado', value: row.estado },
+                    { label: 'Responsable', value: row.responsable },
+                    { label: 'Observacion', value: row.observacion },
+                    { label: 'Categoria', value: row.categoria },
+                  ]}
+                />
+              ))}
+              {mobilePageCount > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', pt: 0.5 }}>
+                  <Pagination
+                    count={mobilePageCount}
+                    page={mobilePage}
+                    onChange={(_, page) => setMobilePage(page)}
+                    size="small"
+                    color="primary"
+                  />
+                </Box>
+              )}
+            </Stack>
+          ) : (
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <DataGrid
+                rows={filteredRows}
+                columns={planColumns}
+                autoHeight
+                disableRowSelectionOnClick
+                pageSizeOptions={[10]}
+                initialState={{
+                  pagination: {
+                    paginationModel: { pageSize: 10, page: 0 },
+                  },
+                }}
+                sx={{ minWidth: 860 }}
+              />
+            </Box>
+          )}
         </Paper>
       )}
     </Stack>

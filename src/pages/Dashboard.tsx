@@ -1,5 +1,7 @@
-import { Alert, Box, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, CircularProgress, Pagination, Paper, Stack, TextField, Typography } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import { useEffect, useMemo, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
@@ -19,6 +21,7 @@ import type {
 import AlertsPanel from '../components/AlertsPanel';
 import DateRangeFilter from '../components/DateRangeFilter';
 import KpiCard from '../components/KpiCard';
+import MobileRecordCard from '../components/MobileRecordCard';
 import { defaultDateRange, toApiDate } from '../utils/date';
 
 const topColumns: GridColDef<TopProductoRow>[] = [
@@ -34,6 +37,9 @@ const abcdeColumns: GridColDef<AbcdeRow>[] = [
 ];
 
 const Dashboard = (): JSX.Element => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const mobilePageSize = 6;
   const initialRange = defaultDateRange();
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
@@ -44,6 +50,8 @@ const Dashboard = (): JSX.Element => {
   const [supportByDay, setSupportByDay] = useState<SupportByDayPoint[]>([]);
   const [topSearch, setTopSearch] = useState('');
   const [abcdeSearch, setAbcdeSearch] = useState('');
+  const [topPage, setTopPage] = useState(1);
+  const [abcdePage, setAbcdePage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -104,8 +112,37 @@ const Dashboard = (): JSX.Element => {
     );
   }, [abcdeRows, abcdeSearch]);
 
+  const topPageCount = Math.max(1, Math.ceil(filteredTopProductos.length / mobilePageSize));
+  const abcdePageCount = Math.max(1, Math.ceil(filteredAbcdeRows.length / mobilePageSize));
+
+  useEffect(() => {
+    setTopPage((prev) => Math.min(prev, topPageCount));
+  }, [topPageCount]);
+
+  useEffect(() => {
+    setAbcdePage((prev) => Math.min(prev, abcdePageCount));
+  }, [abcdePageCount]);
+
+  useEffect(() => {
+    setTopPage(1);
+  }, [topSearch, startDate, endDate]);
+
+  useEffect(() => {
+    setAbcdePage(1);
+  }, [abcdeSearch, startDate, endDate]);
+
+  const pagedTopProductos = useMemo(() => {
+    const start = (topPage - 1) * mobilePageSize;
+    return filteredTopProductos.slice(start, start + mobilePageSize);
+  }, [filteredTopProductos, topPage]);
+
+  const pagedAbcdeRows = useMemo(() => {
+    const start = (abcdePage - 1) * mobilePageSize;
+    return filteredAbcdeRows.slice(start, start + mobilePageSize);
+  }, [filteredAbcdeRows, abcdePage]);
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} sx={{ maxWidth: { xs: 440, md: 'none' }, mx: { xs: 'auto', md: 0 } }}>
       <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
         <DateRangeFilter
           startDate={startDate}
@@ -195,21 +232,48 @@ const Dashboard = (): JSX.Element => {
                   fullWidth
                   sx={{ mb: 1.5 }}
                 />
-                <Box sx={{ width: '100%', overflowX: 'auto' }}>
-                  <DataGrid
-                    rows={filteredTopProductos}
-                    columns={topColumns}
-                    autoHeight
-                    pageSizeOptions={[10]}
-                    disableRowSelectionOnClick
-                    initialState={{
-                      pagination: {
-                        paginationModel: { pageSize: 10, page: 0 },
-                      },
-                    }}
-                    sx={{ minWidth: 620 }}
-                  />
-                </Box>
+                {isMobile ? (
+                  <Stack spacing={1.2}>
+                    {pagedTopProductos.map((row) => (
+                      <MobileRecordCard
+                        key={row.id}
+                        rows={[
+                          { label: 'Articulo', value: row.item },
+                          { label: 'Soporte absoluto', value: row.soporte_absoluto },
+                          { label: 'Soporte relativo', value: `${row.soporte_relativo}%` },
+                          { label: 'Descripcion', value: row.description },
+                        ]}
+                      />
+                    ))}
+                    {topPageCount > 1 && (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 0.5 }}>
+                        <Pagination
+                          count={topPageCount}
+                          page={topPage}
+                          onChange={(_, page) => setTopPage(page)}
+                          size="small"
+                          color="primary"
+                        />
+                      </Box>
+                    )}
+                  </Stack>
+                ) : (
+                  <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                    <DataGrid
+                      rows={filteredTopProductos}
+                      columns={topColumns}
+                      autoHeight
+                      pageSizeOptions={[10]}
+                      disableRowSelectionOnClick
+                      initialState={{
+                        pagination: {
+                          paginationModel: { pageSize: 10, page: 0 },
+                        },
+                      }}
+                      sx={{ minWidth: 620 }}
+                    />
+                  </Box>
+                )}
               </Paper>
             </Box>
             <Box>
@@ -225,21 +289,46 @@ const Dashboard = (): JSX.Element => {
                   fullWidth
                   sx={{ mb: 1.5 }}
                 />
-                <Box sx={{ width: '100%', overflowX: 'auto' }}>
-                  <DataGrid
-                    rows={filteredAbcdeRows}
-                    columns={abcdeColumns}
-                    autoHeight
-                    pageSizeOptions={[10]}
-                    disableRowSelectionOnClick
-                    initialState={{
-                      pagination: {
-                        paginationModel: { pageSize: 10, page: 0 },
-                      },
-                    }}
-                    sx={{ minWidth: 360 }}
-                  />
-                </Box>
+                {isMobile ? (
+                  <Stack spacing={1.2}>
+                    {pagedAbcdeRows.map((row) => (
+                      <MobileRecordCard
+                        key={row.id}
+                        rows={[
+                          { label: 'Codigo', value: row.itemCode },
+                          { label: 'Clase', value: row.abcde },
+                        ]}
+                      />
+                    ))}
+                    {abcdePageCount > 1 && (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 0.5 }}>
+                        <Pagination
+                          count={abcdePageCount}
+                          page={abcdePage}
+                          onChange={(_, page) => setAbcdePage(page)}
+                          size="small"
+                          color="primary"
+                        />
+                      </Box>
+                    )}
+                  </Stack>
+                ) : (
+                  <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                    <DataGrid
+                      rows={filteredAbcdeRows}
+                      columns={abcdeColumns}
+                      autoHeight
+                      pageSizeOptions={[10]}
+                      disableRowSelectionOnClick
+                      initialState={{
+                        pagination: {
+                          paginationModel: { pageSize: 10, page: 0 },
+                        },
+                      }}
+                      sx={{ minWidth: 360 }}
+                    />
+                  </Box>
+                )}
               </Paper>
             </Box>
           </Box>

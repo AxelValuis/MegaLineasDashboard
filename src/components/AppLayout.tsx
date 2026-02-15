@@ -76,7 +76,7 @@ const AppLayout = (): JSX.Element => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', bgcolor: '#ffffff', minHeight: '100vh' }}>
       <CssBaseline />
       <AppBar
         position="fixed"
@@ -129,9 +129,17 @@ const AppLayout = (): JSX.Element => {
         </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: { xs: 1.5, sm: 2, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 1.2, sm: 2, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` }, bgcolor: '#ffffff' }}>
         <Toolbar />
-        <Outlet />
+        <Box
+          sx={{
+            maxWidth: { xs: 460, md: 'none' },
+            mx: { xs: 'auto', md: 0 },
+            px: { xs: 1, sm: 0 },
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );
