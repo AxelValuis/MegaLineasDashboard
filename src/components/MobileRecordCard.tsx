@@ -17,12 +17,14 @@ const MobileRecordCard = ({ title, rows, footer }: MobileRecordCardProps): JSX.E
     sx={{
       p: 2,
       borderRadius: 3,
-      border: '1px solid #d8dee8',
+      border: '1px solid',
+      borderColor: 'divider',
+      bgcolor: 'background.paper',
       boxShadow: '0 2px 8px rgba(16, 24, 40, 0.08)',
     }}
   >
     {title && (
-      <Typography sx={{ fontWeight: 700, color: '#49566b', mb: 1.2 }}>
+      <Typography sx={{ fontWeight: 700, color: 'text.secondary', mb: 1.2 }}>
         {title}
       </Typography>
     )}
@@ -30,11 +32,18 @@ const MobileRecordCard = ({ title, rows, footer }: MobileRecordCardProps): JSX.E
     <Box sx={{ display: 'grid', gap: 0.9 }}>
       {rows.map((row, index) => (
         <Box key={`${row.label}-${index}`}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr) 1fr', gap: 1.5, alignItems: 'start' }}>
-            <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, letterSpacing: 0.2, color: '#778296' }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'minmax(120px, 1fr) 1fr' },
+              gap: { xs: 0.35, sm: 1.5 },
+              alignItems: 'start',
+            }}
+          >
+            <Typography sx={{ fontSize: '0.76rem', fontWeight: 700, letterSpacing: 0.2, color: 'text.secondary' }}>
               {row.label}
             </Typography>
-            <Typography sx={{ fontSize: '0.92rem', color: '#1f2a37', textAlign: 'right' }}>
+            <Typography sx={{ fontSize: '0.92rem', color: 'text.primary', textAlign: { xs: 'left', sm: 'right' }, wordBreak: 'break-word' }}>
               {row.value}
             </Typography>
           </Box>

@@ -10,7 +10,7 @@ interface PlanificadorFilters {
 }
 
 const RED = 'FFD50000';
-const BLUE = 'FF1F4F8A';
+const BLUE = 'FF014385';
 const LIGHT_GRAY = 'FFF5F7FA';
 
 const safeText = (value: string): string => value.trim() || '-';

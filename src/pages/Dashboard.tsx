@@ -2,8 +2,9 @@ import { Alert, Box, CircularProgress, Pagination, Paper, Stack, TextField, Typo
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import dayjs from 'dayjs';
 import { useEffect, useMemo, useState } from 'react';
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
   fetchAbcde,
   fetchAlerts,
@@ -38,6 +39,7 @@ const abcdeColumns: GridColDef<AbcdeRow>[] = [
 
 const Dashboard = (): JSX.Element => {
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const mobilePageSize = 6;
   const initialRange = defaultDateRange();
@@ -142,8 +144,24 @@ const Dashboard = (): JSX.Element => {
   }, [filteredAbcdeRows, abcdePage]);
 
   return (
-    <Stack spacing={2} sx={{ maxWidth: { xs: 440, md: 'none' }, mx: { xs: 'auto', md: 0 } }}>
-      <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
+    <Stack spacing={1.5} sx={{ width: '100%', maxWidth: '100%' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: { xs: 'flex-start', md: 'flex-end' }, flexWrap: 'wrap' }}>
+        <Box sx={{ maxWidth: 760 }}>
+          <Typography variant="h4" sx={{ mb: 0.1, fontSize: { xs: '1.4rem', sm: '1.9rem' } }}>
+            Centro de Control
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '0.88rem', sm: '0.95rem' } }}>
+            Panorama operativo, alertas clave y comportamiento diario del soporte.
+          </Typography>
+        </Box>
+        <Box sx={{ px: 1.25, py: 0.75, borderRadius: 3, width: { xs: '100%', sm: 'auto' }, bgcolor: theme.palette.mode === 'dark' ? 'rgba(236,106,23,0.12)' : 'rgba(236,106,23,0.08)' }}>
+          <Typography sx={{ fontSize: '0.78rem', color: 'secondary.main', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            Resumen Ejecutivo
+          </Typography>
+        </Box>
+      </Box>
+
+      <Paper sx={{ p: { xs: 1.1, sm: 1.4 } }}>
         <DateRangeFilter
           startDate={startDate}
           endDate={endDate}
@@ -166,7 +184,7 @@ const Dashboard = (): JSX.Element => {
           <Box
             sx={{
               display: 'grid',
-              gap: 1.5,
+              gap: 1.1,
               gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(6, 1fr)' },
             }}
           >
@@ -196,21 +214,98 @@ const Dashboard = (): JSX.Element => {
             />
           </Box>
 
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' } }}>
+          <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' } }}>
             <Box>
-              <Paper sx={{ p: 2, height: 320 }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Soporte por dia
-                </Typography>
-                <ResponsiveContainer width="100%" height="85%">
-                  <LineChart data={supportByDay}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="soporte" stroke="#0b5cab" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <Paper
+                sx={{
+                  p: 0,
+                  height: { xs: 300, sm: 332 },
+                  overflow: 'hidden',
+                  borderRadius: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: 'background.paper',
+                }}
+              >
+                <Box
+                  sx={{
+                    p: { xs: 1.25, sm: 2 },
+                    borderBottom: '1px solid',
+                    borderBottomColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      sx={{
+                        color: theme.palette.text.primary,
+                        fontWeight: 700,
+                        fontSize: { xs: '1rem', sm: '1.3rem' },
+                      }}
+                    >
+                      Soporte Overview
+                    </Typography>
+                    <Typography sx={{ color: theme.palette.text.secondary, fontSize: '0.88rem' }}>
+                      Evolucion diaria de soporte
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ px: { xs: 0.8, sm: 1.1 }, pt: { xs: 0.3, sm: 0.8 }, height: { xs: 206, sm: 236 } }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={supportByDay} margin={{ top: 8, right: isMobile ? 4 : 12, left: isMobile ? -12 : 4, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="supportGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={isDark ? 0.35 : 0.26} />
+                          <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={isDark ? 0.08 : 0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke={isDark ? '#2f3540' : '#e8eef8'} vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={(value: string) => (isMobile ? dayjs(value).format('DD/MM') : dayjs(value).format('DD MMM'))}
+                        minTickGap={isMobile ? 34 : 24}
+                        interval="preserveStartEnd"
+                        tick={{ fill: theme.palette.text.secondary, fontSize: isMobile ? 10 : 12 }}
+                        axisLine={{ stroke: theme.palette.divider }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        hide={isMobile}
+                        domain={([dataMin, dataMax]: [number, number]) => [Math.max(0, dataMin - 80), dataMax + 80]}
+                        tickCount={5}
+                        tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={48}
+                      />
+                      <Tooltip
+                        labelFormatter={(value: string) => dayjs(value).format('DD MMM, YYYY')}
+                        formatter={(value: number) => [`${value}`, 'Soporte']}
+                        contentStyle={{
+                          background: theme.palette.background.paper,
+                          border: `1px solid ${theme.palette.divider}`,
+                          borderRadius: 10,
+                          color: theme.palette.text.primary,
+                          boxShadow: '0 8px 20px rgba(15, 23, 42, 0.12)',
+                        }}
+                        itemStyle={{ color: theme.palette.primary.main }}
+                        labelStyle={{ color: theme.palette.text.primary, fontWeight: 700 }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="soporte"
+                        stroke={theme.palette.primary.main}
+                        strokeWidth={2.5}
+                        fillOpacity={1}
+                        fill="url(#supportGradient)"
+                        dot={false}
+                        activeDot={{ r: 5, stroke: theme.palette.background.paper, strokeWidth: 1.5, fill: theme.palette.primary.main }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Box>
               </Paper>
             </Box>
             <Box>
@@ -218,7 +313,7 @@ const Dashboard = (): JSX.Element => {
             </Box>
           </Box>
 
-          <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' } }}>
+          <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' } }}>
             <Box>
               <Paper sx={{ p: { xs: 1, sm: 2 } }}>
                 <Typography variant="h6" sx={{ mb: 1 }}>
@@ -270,7 +365,19 @@ const Dashboard = (): JSX.Element => {
                           paginationModel: { pageSize: 10, page: 0 },
                         },
                       }}
-                      sx={{ minWidth: 620 }}
+                      sx={{
+                        minWidth: 620,
+                        border: 'none',
+                        '& .MuiDataGrid-columnHeaders': {
+                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                        },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                          fontSize: '0.73rem',
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                          color: 'text.secondary',
+                        },
+                      }}
                     />
                   </Box>
                 )}
@@ -325,7 +432,19 @@ const Dashboard = (): JSX.Element => {
                           paginationModel: { pageSize: 10, page: 0 },
                         },
                       }}
-                      sx={{ minWidth: 360 }}
+                      sx={{
+                        minWidth: 360,
+                        border: 'none',
+                        '& .MuiDataGrid-columnHeaders': {
+                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                        },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                          fontSize: '0.73rem',
+                          fontWeight: 800,
+                          textTransform: 'uppercase',
+                          color: 'text.secondary',
+                        },
+                      }}
                     />
                   </Box>
                 )}

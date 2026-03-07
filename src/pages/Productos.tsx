@@ -117,13 +117,25 @@ const Productos = (): JSX.Element => {
   }, [filteredAbcde, abcdePage]);
 
   return (
-    <Stack spacing={2} sx={{ maxWidth: { xs: 440, md: 'none' }, mx: { xs: 'auto', md: 0 } }}>
-      <Typography variant="h5" fontWeight={700}>
-        Productos / Clasificacion ABCDE
-      </Typography>
+    <Stack spacing={2.2} sx={{ width: '100%', maxWidth: '100%' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: { xs: 'flex-start', md: 'center' }, flexWrap: 'wrap' }}>
+        <Box sx={{ maxWidth: 760 }}>
+          <Typography variant="h4" sx={{ mb: 0.2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+            Productos y Clasificacion ABCDE
+          </Typography>
+          <Typography sx={{ color: 'text.secondary', fontSize: { xs: '0.88rem', sm: '0.95rem' } }}>
+            Prioriza articulos clave y consulta su relevancia operativa por soporte.
+          </Typography>
+        </Box>
+        <Box sx={{ px: 1.5, py: 1, borderRadius: 3, width: { xs: '100%', sm: 'auto' }, bgcolor: theme.palette.mode === 'dark' ? 'rgba(1,67,133,0.16)' : 'rgba(1,67,133,0.08)' }}>
+          <Typography sx={{ fontSize: '0.78rem', color: 'primary.main', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            Analisis de portafolio
+          </Typography>
+        </Box>
+      </Box>
 
       <Paper sx={{ p: { xs: 1.5, sm: 2 } }}>
-        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: tab === 1 ? '2fr 1.2fr 0.8fr' : '2fr 1.2fr' } }}>
+        <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr', lg: tab === 1 ? '2fr 1.2fr 0.8fr' : '2fr 1.2fr' } }}>
           <DateRangeFilter
             startDate={startDate}
             endDate={endDate}
@@ -220,7 +232,19 @@ const Productos = (): JSX.Element => {
                       paginationModel: { pageSize: 10, page: 0 },
                     },
                   }}
-                  sx={{ minWidth: 620 }}
+                  sx={{
+                    minWidth: 620,
+                    border: 'none',
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                    },
+                    '& .MuiDataGrid-columnHeaderTitle': {
+                      fontSize: '0.73rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      color: 'text.secondary',
+                    },
+                  }}
                 />
               </Box>
             )
@@ -261,7 +285,19 @@ const Productos = (): JSX.Element => {
                       paginationModel: { pageSize: 10, page: 0 },
                     },
                   }}
-                  sx={{ minWidth: 360 }}
+                  sx={{
+                    minWidth: 360,
+                    border: 'none',
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc',
+                    },
+                    '& .MuiDataGrid-columnHeaderTitle': {
+                      fontSize: '0.73rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      color: 'text.secondary',
+                    },
+                  }}
                 />
               </Box>
             )
