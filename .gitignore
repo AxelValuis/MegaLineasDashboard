@@ -12,6 +12,8 @@ coverage/
 # Generated config artifacts (keep source .ts)
 vite.config.js
 vite.config.d.ts
+vitest.config.js
+vitest.config.d.ts
 
 # Environment files
 .env
